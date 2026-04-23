@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收钱吧 · 路演工坊</title>
+<style>
+/* ─────────────────────────────────────────
+   V4 — Minimal Pure White (Notion / Things3)
+   极淡边框、大字号、纯黑白为主、黄色仅做点睛
+   5-Steps 版本：前端仅展示 5 个模块，
+   底层仍自动整合生成最终路演稿报告
+   ───────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --y:#C99025;--y-soft:#D9A23A;--y-deep:#A87510;
+  --yl:#FFFAF0;
+  --t1:#0A0A0A;--t2:#525252;--t3:#9A9A9A;--t4:#C9C9C9;
+  --bg:#FFFFFF;--bg2:#FAFAFA;--bg3:#F4F4F4;
+  --bd:#EEEEEE;--bd2:#E0E0E0;
+  --r:8px;--rs:6px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html,body{min-height:100vh}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Text','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  background:var(--bg);color:var(--t1);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+/* Header */
+.hd{position:fixed;top:0;left:0;right:0;height:56px;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 32px;z-index:100}
+.logo{font-size:14px;font-weight:600;letter-spacing:-.2px;color:var(--t1)}
+.logo em{color:var(--y);font-style:normal;font-weight:600}
+.pb{display:none}
+.steps{display:flex;gap:6px;align-items:center}
+.sd{width:5px;height:5px;border-radius:50%;background:var(--bd2);transition:all .25s var(--ease)}
+.sd.on{background:var(--t1);width:14px;border-radius:2px}
+.sd.ok{background:var(--bd2)}
+/* Main */
+.main{padding-top:64px;min-height:100vh}
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--t1);color:var(--bg);padding:10px 20px;border-radius:6px;font-size:13px;font-weight:500;opacity:0;transition:all .2s var(--ease);z-index:200;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fi .35s var(--ease)}
+/* Setup */
+.setup{max-width:520px;margin:0 auto;padding:96px 32px 56px}
+.badge{display:inline-block;color:var(--t3);font-size:11px;font-weight:600;padding:0;border-radius:0;margin-bottom:32px;letter-spacing:1.2px;text-transform:uppercase;background:transparent}
+.setup h1{font-size:52px;font-weight:600;letter-spacing:-1.6px;line-height:1.05;margin-bottom:20px;color:var(--t1)}
+.setup p{font-size:17px;color:var(--t2);line-height:1.55;margin-bottom:52px;font-weight:400}
+.fg{text-align:left;margin-bottom:24px}
+.fl{display:block;font-size:13px;font-weight:600;margin-bottom:10px;color:var(--t1)}
+.fi-input{width:100%;padding:13px 0;border:none;border-bottom:1px solid var(--bd2);border-radius:0;font-size:16px;font-family:inherit;color:var(--t1);background:transparent;transition:border-color .2s var(--ease);outline:none}
+.fi-input:hover{border-color:var(--t3)}
+.fi-input:focus{border-color:var(--t1)}
+.fi-input::placeholder{color:var(--t4)}
+textarea.fi-input{resize:none;height:80px;line-height:1.55;padding:13px 0}
+.btn{width:100%;padding:14px 20px;background:var(--t1);color:var(--bg);border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;transition:background .2s var(--ease),opacity .2s;font-family:inherit;margin-top:12px;letter-spacing:-.1px}
+.btn:hover{background:var(--y)}
+.btn:active{transform:scale(.99)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+.adv-t{font-size:13px;color:var(--t3);cursor:pointer;text-align:center;margin-top:20px;padding:8px;transition:color .15s}
+.adv-t:hover{color:var(--t1)}
+.adv-p{display:none;margin-top:16px;padding:24px;background:var(--bg2);border-radius:var(--r)}
+.adv-p.open{display:block;animation:fi .25s var(--ease)}
+.adv-p .fg{margin-bottom:18px}
+.adv-p .fl{font-size:12px}
+.adv-p .fi-input{font-size:14px;padding:11px 0}
+/* Chat */
+.chat{max-width:660px;margin:0 auto;padding:48px 32px 140px}
+.sh{margin-bottom:48px}
+.sn{font-size:12px;font-weight:600;color:var(--t3);letter-spacing:1px;margin-bottom:12px;font-feature-settings:'tnum';font-variant-numeric:tabular-nums}
+.st{font-size:36px;font-weight:600;letter-spacing:-1px;line-height:1.15;color:var(--t1)}
+.sd2{font-size:16px;color:var(--t2);margin-top:12px;line-height:1.55}
+/* Context card */
+.ctx{background:var(--bg2);border:none;border-radius:var(--r);padding:14px 18px;margin-bottom:28px;font-size:14px;line-height:1.55;color:var(--t2)}
+.ctx strong{color:var(--t1);font-size:11px;display:block;margin-bottom:6px;letter-spacing:.8px;text-transform:uppercase;font-weight:600}
+/* Messages */
+.msgs{display:flex;flex-direction:column;gap:20px}
+@keyframes si{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg{display:flex;gap:12px;animation:si .3s var(--ease)}
+.msg.u{flex-direction:row-reverse}
+.av{width:32px;height:32px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:600;color:var(--t2)}
+.msg.u .av{background:var(--t1);color:var(--bg);font-size:12px}
+.bub{max-width:80%;padding:14px 18px;border-radius:18px;font-size:15.5px;line-height:1.65}
+.msg.ai .bub{background:var(--bg2);color:var(--t1);border-radius:6px 18px 18px 18px}
+.msg.u .bub{background:var(--t1);color:var(--bg);border-radius:18px 6px 18px 18px}
+.msg.out .bub{background:var(--bg);border:1px solid var(--bd2);border-radius:var(--r);max-width:100%;padding:24px 28px;color:var(--t1)}
+/* Loading */
+.ld{display:flex;gap:5px;padding:14px 18px;background:var(--bg2);border-radius:6px 18px 18px 18px;width:fit-content}
+.ld-d{width:6px;height:6px;border-radius:50%;background:var(--t3);animation:bounce 1.4s infinite}
+.ld-d:nth-child(2){animation-delay:.18s}.ld-d:nth-child(3){animation-delay:.36s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}
+/* Input area */
+.ia{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--bd);padding:16px 24px}
+.ic{max-width:660px;margin:0 auto;display:flex;gap:10px;align-items:flex-end}
+.ci{flex:1;padding:12px 16px;border:1px solid var(--bd2);border-radius:14px;font-size:15px;font-family:inherit;color:var(--t1);background:var(--bg);resize:none;outline:none;min-height:46px;max-height:140px;line-height:1.5;transition:border-color .15s var(--ease)}
+.ci:hover{border-color:var(--t3)}
+.ci:focus{border-color:var(--t1)}
+.sb{width:46px;height:46px;background:var(--t1);border:none;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s var(--ease)}
+.sb:hover{background:var(--y)}
+.sb:disabled{opacity:.3;cursor:not-allowed;background:var(--t4)}
+.sb svg{fill:var(--bg)}
+/* Next button */
+.nb{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:var(--t1);color:var(--bg);border:none;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s var(--ease);margin-top:32px}
+.nb:hover{background:var(--y)}
+/* Gen loading */
+.gl{text-align:center;padding:80px 0}
+.gl .ld{margin:0 auto}
+.gl p{margin-top:18px;color:var(--t3);font-size:13px}
+/* Complete */
+.cpl{max-width:660px;margin:0 auto;padding:80px 32px 80px}
+.cpl-hd{text-align:center;margin-bottom:56px}
+.cpl-ic{display:none}
+.cpl h1{font-size:38px;font-weight:600;letter-spacing:-1px;margin-bottom:12px;color:var(--t1);line-height:1.18}
+.cpl .sub{font-size:15px;color:var(--t2)}
+.act{display:flex;gap:10px;margin-top:28px;justify-content:center;flex-wrap:wrap}
+.btn2{padding:11px 22px;background:var(--bg2);color:var(--t1);border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s var(--ease)}
+.btn2:hover{background:var(--bg3)}
+.btn3{padding:11px 22px;background:var(--t1);color:var(--bg);border:none;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s var(--ease)}
+.btn3:hover{background:var(--y)}
+.rs{background:var(--bg);border:none;border-top:1px solid var(--bd);border-radius:0;padding:32px 0;margin-bottom:0;box-shadow:none}
+.rs:last-of-type{border-bottom:1px solid var(--bd)}
+.rs-t{font-size:11px;font-weight:600;color:var(--t3);letter-spacing:1.2px;margin-bottom:14px;text-transform:uppercase;font-feature-settings:'tnum';display:block}
+.rs-t::before{display:none}
+.rs-c{font-size:15.5px;line-height:1.78;white-space:pre-wrap;color:var(--t1)}
+.rs-loading{padding:12px 0;color:var(--t3);font-size:14px;display:flex;align-items:center;gap:12px}
+.rs-loading .ld{padding:8px 14px;background:var(--bg2)}
+/* hint */
+.hint{font-size:13px;color:var(--t3);margin-top:8px;line-height:1.5}
+/* Tip card */
+.tip{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:28px;padding:14px 18px;background:var(--bg2);border-radius:var(--r);border:none}
+/* Paragraph rhythm */
+.bub p,.rs-c p{margin:0 0 12px}
+.bub p:last-child,.rs-c p:last-child{margin-bottom:0}
+.msg.out .bub p{margin:0 0 14px}
+.msg.out .bub p:last-child{margin-bottom:0}
+/* Highlight markers — underline in brand yellow */
+.hl{color:var(--t1);font-weight:600;border-bottom:1.5px solid var(--y);padding:0 1px}
+.msg.u .bub .hl{color:var(--bg);border-bottom-color:var(--y-soft)}
+.msg.out .bub .hl{border-bottom-width:2px}
+/* Back button */
+.backBtn{display:inline-flex;align-items:center;gap:6px;background:transparent;border:none;color:var(--t3);font-size:13px;cursor:pointer;padding:6px 0;margin-bottom:24px;font-family:inherit;border-radius:0;transition:color .15s var(--ease)}
+.backBtn:hover{color:var(--t1)}
+.backBtn:disabled{opacity:.4;cursor:not-allowed}
+/* Mobile */
+@media(max-width:600px){
+  .setup{padding:64px 24px 48px}
+  .setup h1{font-size:38px;letter-spacing:-1.2px}
+  .setup p{font-size:15px;margin-bottom:38px}
+  .chat{padding:36px 22px 130px}
+  .st{font-size:28px;letter-spacing:-.6px}
+  .sd2{font-size:14.5px}
+  .bub{max-width:88%;font-size:14.5px;padding:12px 15px}
+  .ia{padding:14px 18px}
+  .cpl{padding:64px 22px 60px}
+  .cpl h1{font-size:30px}
+  .hd{padding:0 22px}
+}
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="logo"><em></em></div>
+  <div class="steps" id="steps"></div>
+</header>
+<div class="pb"><div class="pf" id="pf" style="width:0%"></div></div>
+<main class="main" id="app"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+// 在此填入配置（或让学员在设置页输入）
+const PRESET = {
+  apiBase: 'https://api.deepseek.com',
+  apiKey:  'sk-a70c9fa165e848e2938bdc376f06fa77',
+  feishu:  'https://open.feishu.cn/open-apis/bot/v2/hook/6c2e4765-9a7c-4f51-873e-64e985f8faa5',
+};
+
+// ── CONSTANTS ─────────────────────────────────────────────
+// 用户可见模块数（1-5）；模块 6 作为底层整合报告自动生成
+const VISIBLE = 5;
+
+// ── STATE ─────────────────────────────────────────────────
+const S = {
+  screen: 'setup',
+  name: '', biz: '',
+  apiBase: PRESET.apiBase,
+  apiKey:  PRESET.apiKey,
+  feishu:  PRESET.feishu,
+  section: 0,
+  busy: false,
+  d: {},
+};
+for (let i = 1; i <= 6; i++)
+  S.d[i] = { msgs: [], out: '', done: false, extra: '', turns: 0, draft: '', extraDraft: '', inputs: {}, inputsSubmitted: false };
+
+// ── SECTION META ──────────────────────────────────────────
+const META = {
+  1: { name:'第一性原理',    desc:'剥离产品表象，找到你创业的本质驱动力', type:'chat', maxTurns:3, donePattern:/你的第一性原理不是/ },
+  2: { name:'使命愿景价值观', desc:'将第一性原理转化为公司的战略罗盘',     type:'chat', maxTurns:2, donePattern:/使命(（Mission）|\s*[:：])/ },
+  3: { name:'内在恐惧',      desc:'挖掘商业卡点背后隐藏的核心恐惧',       type:'chat', maxTurns:4, needExtra:true, extraLabel:'你目前遇到的商业卡点', extraHint:'例：我明知要让客户付费，却每次话到嘴边又咽回去…', donePattern:/核心恐惧底牌/ },
+  4: { name:'用户洞察',      desc:'从客户视角深度洞察真实购买动机',        type:'gen',
+       submitText:'生成用户洞察',
+       inputFields:[
+         { key:'biz',     label:'你的行业 / 初步产品方向', hint:'课堂讨论后可在此修改', height:100, default:() => S.biz },
+         { key:'profile', label:'核心目标客户画像',         hint:'例：一位年入百万但极度焦虑子女教育的35岁海淀妈妈 / 一位面临现金流断裂危机的传统制造业老板', height:130, default:() => S.d[4].extra || '' },
+       ] },
+  5: { name:'原型重塑',      desc:'将产品从功能级重塑为精神级原型',        type:'gen',
+       submitText:'生成原型重塑',
+       inputFields:[
+         { key:'biz', label:'你的业务/产品描述', hint:'课堂讨论后可在此修改', height:120, default:() => S.biz }
+       ] },
+  // 模块 6：不在前端以独立步骤展示，作为底层整合报告在最终成果页自动生成
+  6: { name:'路演讲稿',      desc:'整合所有洞察，生成5分钟路演逐字稿大纲', type:'gen',
+       submitText:'生成路演稿',
+       inputFields:[
+         { key:'biz', label:'业务描述',          hint:'',                       height:80,  default:() => S.biz },
+         { key:'p1',  label:'第一性原理',        hint:'课堂讨论后可在此重写',  height:140, default:() => S.d[1].out },
+         { key:'p2',  label:'使命愿景价值观',    hint:'课堂讨论后可在此重写',  height:160, default:() => S.d[2].out },
+         { key:'p3',  label:'内在恐惧与跨越',    hint:'课堂讨论后可在此重写',  height:160, default:() => S.d[3].out },
+         { key:'p4',  label:'用户深度洞察',      hint:'课堂讨论后可在此重写',  height:200, default:() => S.d[4].out },
+         { key:'p5',  label:'原型重塑',          hint:'课堂讨论后可在此重写',  height:200, default:() => S.d[5].out },
+       ] },
+};
+
+// ── PROMPTS ───────────────────────────────────────────────
+function sysPrompt(n) {
+  if (n === 1) return `你现在是一位犀利的商业哲学家和心理导师。你的目标是帮助用户找到创业的"第一性原理"——剥离所有产品表象后，真正解决的核心痛点或本质价值。
+
+规则（严格执行）：
+- 每次只问一个问题，绝不一次问多个
+- 遵循"极限剥离"原则，例如：如果明天AI能完全取代你的产品，你还能提供什么？
+- 用户告诉你职业后，立刻开始第一个问题
+- 共问3轮，不多不少
+- 用户回答第3个问题后，立即输出结论，格式严格如下：
+"原来，你的第一性原理不是【表面的业务】，而是【底层的本质】。本质上，你是一个【重新定义的身份/角色】。即使【现在的产品/行业】消失，你也依然在【你真正捍卫的价值】。"
+
+语气：犀利、严肃、直击灵魂。`;
+
+  if (n === 2) return `你现在是一位极其冷酷、极具战略眼光的商业合伙人。
+
+已知第一性原理：${S.d[1].out}
+
+你需要通过2个极限压力测试问题，帮助提炼使命、愿景和价值观。
+
+规则（严格执行）：
+- 共问2个问题，一次只问一个，等用户回答后再问下一个
+- 问题1（终局测试）：假设10年后完全贯彻第一性原理并取得绝对成功，那时的世界/行业因我们的存在发生了什么具象改变？我们的客户每天在过怎样的生活？
+- 问题2（流血测试）：价值观不是用来赚钱的，是用来亏钱的。假设明天有个机会能赚1000万但必须违背第一性原理——你宁可公司倒闭也绝对不会去做的那件事是什么？给出具体场景。
+- 用户回答第2个问题后，立即输出：
+  使命（Mission）：[动宾结构，极简有力]
+  愿景（Vision）：[一幅激动人心的蓝图]
+  核心价值观（Values）：[3条，用"即使...也必须..."的取舍句式]
+
+直接问第一个问题，不要铺垫。`;
+
+  if (n === 3) return `你现在是一位犀利、懂人性的商业心理侧写师。
+
+用户的商业卡点：${S.d[3].extra}
+
+用"四步剥洋葱法"通过4个连续问题挖出核心恐惧：
+第一步（虚假收益）：维持这个糟糕的现状，其实是在暗中保护你。如果不改变，你偷偷获得了什么虚假的安全感或好处？
+第二步（灾难化想象）：假设你现在立刻打破现状，在你潜意识里，最失控、最让你痛不欲生的灾难性画面是什么？请具体描述。
+第三步（外界审判）：在这个最可怕的灾难画面中，你身边的人会用什么样的最糟糕的负面语言评价你？
+第四步（身份坍塌）：害怕被贴上这些标签，意味着你极力想维持的某个完美人设破灭了。本质上，你到底在害怕证明自己是一个什么样的人？
+
+规则（严格执行）：
+- 严格按顺序，一次只问一个，等回答后再问下一个
+- 用户回答第4个问题后，立即输出【核心恐惧底牌】诊断和一句话预言
+
+直接抛出第一步的问题。`;
+
+  return '';
+}
+
+function genPrompt(n) {
+  if (n === 4) {
+    const inp4 = S.d[4].inputs || {};
+    const biz4 = inp4.biz || S.biz;
+    const profile4 = inp4.profile || S.d[4].extra || '';
+    return `你现在是我企业最核心的目标客户（请扮演：${profile4}）。
+
+我目前正在打磨一个关于【${biz4}】的业务。请你完全带入这个客户的潜意识，用第一人称"我"的口吻，极其直白、真实、甚至有些势利地回答我以下5个问题：
+
+1.【痛点】在这个领域，长期折磨我、让我恐惧或极度麻烦的底层问题是什么？
+2.【决断点/触发事件】我明明可以一直拖延，但具体发生什么"突发危机"或"特定场景"，会把我逼到墙角，让我今天不得不立刻花钱解决？
+3.【痒点】除了解决问题，我内心深处渴望借由这个产品，成为什么样的人？希望别人怎么看我？
+4.【爽点】体验产品过程中，发生什么微小细节，会让我瞬间觉得"太爽了、这钱花得值"？
+5.【Why You？】市面上有那么多大品牌和成熟竞品，我为什么要把钱交给"你"这个创业者？你必须具备什么独特经历、执念，或某种大厂无法提供的"隐秘价值"，才能击穿我的防御？
+
+回答要具体到真实微观场景，绝不要空洞的营销套话。`;
+  }
+
+  if (n === 5) {
+    const inp5 = S.d[5].inputs || {};
+    const biz5 = inp5.biz || S.biz;
+    return `你现在是一位融合了乔布斯（顶级产品布道师）和李善友（第一性原理哲学家）视野的时代观察家与社会心理学家。
+
+我目前所在的行业/提供的产品是：【${biz5}】
+
+帮我完成一次产品的"原型转变"。拒绝所有营销套话，用极其深刻的人文视角，按以下4步输出【原型重构报告】：
+
+第一步（旧地图）：一针见血地指出我的【旧原型】——在过去时代，这个产品在人们集体潜意识里的底色是什么？
+
+第二步（时代断层）：剖析【旧原型失效的真相】——为什么在当下社会情绪（内卷焦虑、原子化孤独、渴望掌控感）里，继续卖旧原型只会让我陷入价格战？
+
+第三步（新大陆）：为我重塑3个【新原型】备选——结合现代人的情感缺失，跳出物理功能局限，给3个极具想象力、颠覆性的"精神新原型"方向。
+
+第四步（降维打击宣言）：从3个新原型中挑选最震撼的一个，严格套用公式：
+"我们表面上卖的是【传统物理认知】，但在这个时代，我们本质上交付的是【新原型精神概念】。"`;
+  }
+
+  if (n === 6) {
+    const inp6 = S.d[6].inputs || {};
+    const biz6 = inp6.biz || S.biz;
+    const p1 = inp6.p1 || S.d[1].out;
+    const p2 = inp6.p2 || S.d[2].out;
+    const p3 = inp6.p3 || S.d[3].out;
+    const p4 = inp6.p4 || S.d[4].out;
+    const p5 = inp6.p5 || S.d[5].out;
+    return `你现在是一位融合了乔布斯和李善友风格的顶级商业路演教练，极具同理心，擅长用真实故事打动人心。
+
+以下是工作坊挖掘出的所有核心素材（深度融合）：
+
+【业务描述】${biz6}
+
+【第一性原理】
+${p1}
+
+【使命愿景价值观】
+${p2}
+
+【内在恐惧与跨越】
+${p3}
+
+【用户深度洞察】
+${p4}
+
+【原型重塑】
+${p5}
+
+请生成一份极具真诚感、哲学高度和共情力的【5分钟路演逐字稿大纲】，严格按以下5幕结构输出：
+
+【第一幕：场景破冰】用创始人故事或用户决断点微观场景开场，引发强烈共鸣与好奇，让大家瞬间放下防御。
+
+【第二幕：范式重构】顺理成章抛出新原型宣言，带给听众视角升维和全场Aha时刻。
+
+【第三幕：灵魂契约（Why You的终极回答）】全场演说的灵魂！结合创始人故事和第一性原理，用极度笃定的语气告诉全场：为什么别人只能做成一门生意，而我能把它做成一种信仰？点出心力护城河。
+
+【第四幕：价值流淌】结合用户洞察，自然解决痛点、满足痒点、制造爽点，实现商业闭环。
+
+【第五幕：星辰大海】用"邀同路登船"的心态，描绘美好未来场景，向拥有相同信念的人发出真诚邀请。
+
+附加任务：逐字稿后，提炼【3个温暖且有力量的高光金句】，其中必须有一句是专门针对"Why You"的霸气与感性并存的宣言。`;
+  }
+
+  return '';
+}
+
+// ── API ───────────────────────────────────────────────────
+async function claude(messages, system) {
+  const base = S.apiBase.replace(/\/$/, '');
+  const isAnthropic = base.includes('anthropic.com');
+
+  let url, headers, body;
+
+  if (isAnthropic) {
+    // Anthropic 格式
+    url = base + '/v1/messages';
+    headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': S.apiKey,
+      'anthropic-version': '2023-06-01',
+    };
+    body = { model: 'claude-sonnet-4-6', max_tokens: 2048, messages };
+    if (system) body.system = system;
+  } else {
+    // OpenAI 兼容格式（DeepSeek / 其他）
+    url = base + '/v1/chat/completions';
+    headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + S.apiKey,
+    };
+    const msgs = system
+      ? [{ role: 'system', content: system }, ...messages]
+      : messages;
+    body = { model: 'deepseek-chat', max_tokens: 2048, messages: msgs };
+  }
+
+  const r = await fetch(url, { method:'POST', headers, body: JSON.stringify(body) });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error?.message || `HTTP ${r.status}`);
+  }
+  const data = await r.json();
+  // 兼容两种响应格式
+  return isAnthropic ? data.content[0].text : data.choices[0].message.content;
+}
+
+// ── SECTION LOGIC ─────────────────────────────────────────
+async function startChat(n) {
+  const sec = S.d[n];
+  if (sec.msgs.length) return;
+  S.busy = true; render();
+
+  const initMsg = n === 1
+    ? `我的职业/业务是：${S.biz}`
+    : '开始吧';
+
+  sec.msgs.push({ role:'user', content: initMsg });
+  try {
+    const reply = await claude(sec.msgs, sysPrompt(n));
+    sec.msgs.push({ role:'assistant', content: reply });
+  } catch(e) { toast('API 错误: ' + e.message); sec.msgs = []; }
+  S.busy = false; render();
+}
+
+async function userSays(n, text) {
+  const sec = S.d[n];
+  const meta = META[n];
+  sec.turns++;
+  const isFinal = sec.turns >= meta.maxTurns;
+  const content = isFinal ? text + '\n\n（这是我的最后一个回答，请现在输出你的最终总结/结论。）' : text;
+  sec.msgs.push({ role:'user', content });
+  S.busy = true; render();
+
+  try {
+    const reply = await claude(sec.msgs, sysPrompt(n));
+    sec.msgs.push({ role:'assistant', content: reply });
+    const looksFinal = meta.donePattern && meta.donePattern.test(reply);
+    if (isFinal || looksFinal) { sec.out = reply; sec.done = true; }
+  } catch(e) { toast('API 错误: ' + e.message); sec.msgs.pop(); }
+  S.busy = false; render();
+}
+
+async function runGen(n) {
+  if (S.d[n].done || S.busy) return;
+  S.busy = true; render();
+  try {
+    const reply = await claude([{ role:'user', content: genPrompt(n) }], '');
+    S.d[n].out = reply; S.d[n].done = true;
+  } catch(e) { toast('API 错误: ' + e.message); }
+  S.busy = false; render();
+}
+
+// 底层整合：静默生成模块 6 的路演稿（不阻塞 UI）
+async function runFinalReport() {
+  const sec6 = S.d[6];
+  if (sec6.done) return;
+  // 自动填充模块 6 所需的所有输入（来自模块 1-5 的产出）
+  sec6.inputs = {};
+  for (const f of META[6].inputFields) {
+    try { sec6.inputs[f.key] = f.default() || ''; } catch(e) { sec6.inputs[f.key] = ''; }
+  }
+  sec6.inputsSubmitted = true;
+  try {
+    const reply = await claude([{ role:'user', content: genPrompt(6) }], '');
+    sec6.out = reply; sec6.done = true;
+  } catch(e) {
+    toast('整合报告生成失败: ' + e.message);
+  }
+  // 如果还在 complete 页面，刷新视图
+  if (S.screen === 'complete') render();
+}
+
+// ── SEND DATA ─────────────────────────────────────────────
+function summary() {
+  const names = {1:'第一性原理',2:'使命愿景价值观',3:'内在恐惧',4:'用户洞察',5:'原型重塑',6:'路演讲稿'};
+  return Object.entries(S.d)
+    .filter(([,v]) => v.out)
+    .map(([k,v]) => `=== ${names[k]} ===\n${v.out}`)
+    .join('\n\n');
+}
+
+async function sendFeishu() {
+  if (!S.feishu) { toast('未填写飞书 Webhook'); return; }
+  const text = `📋 路演工坊记录\n学员：${S.name}\n业务：${S.biz}\n日期：${new Date().toLocaleDateString('zh-CN')}\n\n${summary()}`.slice(0, 4000);
+  try {
+    await fetch(S.feishu, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ msg_type:'text', content:{ text } })
+    });
+    toast('已发送到飞书 ✓');
+  } catch(e) { toast('发送失败: ' + e.message); }
+}
+
+function copyAll() {
+  const text = `学员：${S.name}\n业务：${S.biz}\n\n${summary()}`;
+  navigator.clipboard.writeText(text)
+    .then(() => toast('已复制到剪贴板 ✓'))
+    .catch(() => toast('请手动选择文本复制'));
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+function fmt(t) {
+  if (!t) return '';
+  let s = String(t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/【([^】\n]+?)】/g,'<strong class="hl">【$1】</strong>');
+  // Split into paragraphs on blank lines; preserve single \n as <br>
+  return s.split(/\n{2,}/).map(p => {
+    p = p.trim();
+    if (!p) return '';
+    return '<p>' + p.replace(/\n/g,'<br>') + '</p>';
+  }).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function sectionHeader(n, meta) {
+  return `<div class="sh">
+    ${n > 1 ? `<button class="backBtn" onclick="doBack()" ${S.busy?'disabled':''}>← 上一步</button>` : ''}
+    <div class="sn">模块 ${n} / ${VISIBLE}</div>
+    <div class="st">${meta.name}</div>
+    <div class="sd2">${meta.desc}</div>
+  </div>`;
+}
+
+function updateHeader() {
+  const n = S.section;
+  document.getElementById('pf').style.width = n === 0 ? '2%' : (n/VISIBLE*100) + '%';
+  const steps = document.getElementById('steps');
+  if (S.screen !== 'chat') { steps.innerHTML = ''; return; }
+  const dots = [];
+  for (let i = 1; i <= VISIBLE; i++) dots.push(i);
+  steps.innerHTML = dots.map(i =>
+    `<div class="sd${i < n?' ok':i===n?' on':''}"></div>`
+  ).join('');
+}
+
+function render() {
+  updateHeader();
+  const app = document.getElementById('app');
+  if (S.screen === 'setup')    { app.innerHTML = renderSetup(); }
+  else if (S.screen === 'chat') { app.innerHTML = renderChat(S.section); scheduleAutoStart(); }
+  else                          { app.innerHTML = renderComplete(); }
+  // auto-scroll + restore textarea height for any draft
+  setTimeout(() => {
+    const ci = document.getElementById('ci');
+    if (ci && ci.value) window.autoH(ci);
+    window.scrollTo({ top: document.body.scrollHeight, behavior:'smooth' });
+  }, 80);
+}
+
+function renderSetup() {
+  const showAdv = !PRESET.apiBase || !PRESET.apiKey;
+  return `<div class="setup fi">
+    <div class="badge">路演工坊 · 演讲稿生成系统</div>
+    <h1>找到你的<br>商业第一性原理</h1>
+    <p>通过 ${VISIBLE} 个深度模块的引导，<br>一步步提炼你独一无二的路演大纲。</p>
+    <div class="fg"><label class="fl">你的名字</label>
+      <input class="fi-input" id="iName" type="text" placeholder="请输入你的名字" value="${S.name}"></div>
+    <div class="fg"><label class="fl">你目前在做的事</label>
+      <textarea class="fi-input" id="iBiz" placeholder="简单描述你的业务、职业或创业方向…">${S.biz}</textarea></div>
+    <button class="btn" onclick="doStart()">开始探索 →</button>
+    <div class="adv-t" onclick="this.nextElementSibling.classList.toggle('open')">⚙ 高级设置（API 配置）</div>
+    <div class="adv-p${showAdv?' open':''}">
+      <div class="fg"><label class="fl">API Endpoint</label>
+        <input class="fi-input" id="iBase" type="text" placeholder="https://api.anthropic.com 或 Cloudflare Worker URL" value="${S.apiBase}"></div>
+      <div class="fg"><label class="fl">Anthropic API Key</label>
+        <input class="fi-input" id="iKey" type="password" placeholder="sk-ant-api03-…" value="${S.apiKey}"></div>
+      <div class="fg" style="margin:0"><label class="fl">飞书 Webhook URL（可选，用于接收学员记录）</label>
+        <input class="fi-input" id="iFeishu" type="text" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/…" value="${S.feishu}"></div>
+    </div>
+  </div>`;
+}
+
+function renderChat(n) {
+  const meta = META[n];
+  const sec = S.d[n];
+
+  // Sections needing extra input first (module 3 only — module 4 now uses inputFields)
+  if (n === 3 && !sec.extra) {
+    return `<div class="chat fi">
+      ${sectionHeader(n, meta)}
+      <div class="fg"><label class="fl">${meta.extraLabel}</label>
+        <textarea class="fi-input" id="iExtra" style="height:110px" placeholder="${meta.extraHint}" oninput="saveDraft('iExtra', this.value)">${esc(sec.extraDraft||'')}</textarea>
+        <div class="hint">越具体越好</div></div>
+      <button class="btn" onclick="doExtra(${n})">开始提问 →</button>
+    </div>`;
+  }
+
+  // Sections with multi-field input form (4, 5) — show editable form before generating
+  if (meta.inputFields && !sec.inputsSubmitted) {
+    const fields = meta.inputFields.map(f => {
+      const cur = (sec.inputs && sec.inputs[f.key] !== undefined) ? sec.inputs[f.key] : f.default();
+      return `<div class="fg">
+        <label class="fl">${f.label}</label>
+        <textarea class="fi-input" id="iIn_${f.key}" style="height:${f.height||120}px" oninput="saveInputDraft(${n}, '${f.key}', this.value)">${esc(cur||'')}</textarea>
+        ${f.hint ? `<div class="hint">${f.hint}</div>` : ''}
+      </div>`;
+    }).join('');
+    return `<div class="chat fi">
+      ${sectionHeader(n, meta)}
+      <div class="tip">已自动填入之前模块的内容。课堂讨论后如有新信息，请直接修改下方各项，再点击生成。</div>
+      ${fields}
+      <button class="btn" onclick="submitInputs(${n})">${meta.submitText||'生成'} →</button>
+    </div>`;
+  }
+
+  // Gen sections loading/done
+  if (meta.type === 'gen') {
+    if (!sec.done) {
+      return `<div class="chat fi">
+        ${sectionHeader(n, meta)}
+        ${n > 1 ? ctxCard(n) : ''}
+        <div class="gl"><div class="ld"><div class="ld-d"></div><div class="ld-d"></div><div class="ld-d"></div></div><p>AI 正在深度分析，请稍候…</p></div>
+      </div>`;
+    }
+    const isLast = n === VISIBLE;
+    return `<div class="chat fi">
+      ${sectionHeader(n, meta)}
+      <div class="msg out"><div class="bub">${fmt(sec.out)}</div></div>
+      <button class="nb" onclick="${isLast?'doFinish()':'doNext()'}">${isLast?'生成完整路演稿 →':'进入下一模块 →'}</button>
+    </div>`;
+  }
+
+  // Chat sections
+  const visibleMsgs = sec.msgs.slice(1); // hide initial trigger msg
+  const msgHtml = visibleMsgs.map(m => {
+    const isU = m.role === 'user';
+    // Strip our hidden instruction suffix from display
+    const txt = m.content.replace(/\n\n（这是我的最后一个回答.*?）$/, '');
+    return `<div class="msg ${isU?'u':'ai'}">
+      <div class="av">${isU ? S.name.slice(0,1) : '✦'}</div>
+      <div class="bub">${fmt(txt)}</div>
+    </div>`;
+  }).join('');
+
+  const loading = S.busy ? `<div class="msg ai"><div class="av">✦</div><div class="ld"><div class="ld-d"></div><div class="ld-d"></div><div class="ld-d"></div></div></div>` : '';
+
+  const isLastChat = n === VISIBLE;
+  const nextBtn = sec.done
+    ? `<button class="nb" onclick="${isLastChat?'doFinish()':'doNext()'}">${isLastChat?'生成完整路演稿 →':'进入下一模块 →'}</button>` : '';
+
+  const inputArea = (!sec.done && !S.busy)
+    ? `<div class="ia"><div class="ic">
+        <textarea class="ci" id="ci" placeholder="输入你的回答…" rows="1" onkeydown="onKey(event,${n})" oninput="autoH(this); saveDraft('ci', this.value)">${esc(sec.draft||'')}</textarea>
+        <button class="sb" onclick="doSend(${n})"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+      </div></div>` : '';
+
+  return `<div class="chat fi">
+    ${sectionHeader(n, meta)}
+    ${ctxCard(n)}
+    <div class="msgs">${msgHtml}${loading}</div>
+    ${nextBtn}
+  </div>${inputArea}`;
+}
+
+function ctxCard(n) {
+  if (n === 1) return `<div class="ctx"><strong>你的业务</strong>${S.biz}</div>`;
+  if (n === 2) return S.d[1].out ? `<div class="ctx"><strong>第一性原理</strong>${S.d[1].out.slice(0,120)}…</div>` : '';
+  if (n === 3) return `<div class="ctx"><strong>你的商业卡点</strong>${S.d[3].extra}</div>`;
+  if (n === 4) {
+    const p = (S.d[4].inputs && S.d[4].inputs.profile) || S.d[4].extra || '';
+    return p ? `<div class="ctx"><strong>目标客户画像</strong>${esc(p)}</div>` : '';
+  }
+  return '';
+}
+
+function renderComplete() {
+  const names = {1:'第一性原理',2:'使命愿景价值观',3:'内在恐惧洞察',4:'用户深度洞察',5:'原型重塑报告',6:'路演逐字稿大纲'};
+  const order = [1,2,3,4,5,6];
+  const cards = order.map(k => {
+    const v = S.d[k];
+    if (v.out) {
+      return `<div class="rs"><div class="rs-t">${names[k]}</div><div class="rs-c">${fmt(v.out)}</div></div>`;
+    }
+    // 模块 6 仍在生成中：展示 loading 占位
+    if (k === 6 && !v.done) {
+      return `<div class="rs"><div class="rs-t">${names[k]}</div>
+        <div class="rs-loading">
+          <div class="ld"><div class="ld-d"></div><div class="ld-d"></div><div class="ld-d"></div></div>
+          正在整合前 5 个模块，生成完整路演稿…
+        </div></div>`;
+    }
+    return '';
+  }).join('');
+  return `<div class="cpl fi">
+    <div class="cpl-hd">
+      <div class="cpl-ic">✦</div>
+      <h1>${S.name}，你的路演稿已生成</h1>
+      <p class="sub">以下是你这次工作坊的完整成果</p>
+      <div class="act">
+        <button class="btn2" onclick="copyAll()">📋 复制全部</button>
+        <button class="btn3" onclick="sendFeishu()">发送到飞书</button>
+      </div>
+    </div>
+    ${cards}
+  </div>`;
+}
+
+// ── AUTO-TRIGGER ──────────────────────────────────────────
+function scheduleAutoStart() {
+  if (S.busy) return;
+  const n = S.section;
+  const meta = META[n];
+  const sec = S.d[n];
+  // Module 3 needs single-field extra input first — wait for user to submit
+  if (n === 3 && !sec.extra) return;
+  // Sections with multi-field input form — wait for user to submit
+  if (meta.inputFields && !sec.inputsSubmitted) return;
+  if (meta.type === 'chat' && !sec.msgs.length) {
+    setTimeout(() => startChat(n), 100);
+  } else if (meta.type === 'gen' && !sec.done) {
+    setTimeout(() => runGen(n), 100);
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────────
+window.doStart = () => {
+  const name = (document.getElementById('iName')?.value||'').trim();
+  const biz  = (document.getElementById('iBiz')?.value||'').trim();
+  const base = (document.getElementById('iBase')?.value||'').trim();
+  const key  = (document.getElementById('iKey')?.value||'').trim();
+  const feishu=(document.getElementById('iFeishu')?.value||'').trim();
+  if (!name||!biz) { toast('请填写名字和业务描述'); return; }
+  if (!base||!key)  { toast('请在高级设置中填写 API 配置'); return; }
+  S.name=name; S.biz=biz; S.apiBase=base; S.apiKey=key; S.feishu=feishu;
+  S.screen='chat'; S.section=1;
+  render();
+};
+
+window.doExtra = (n) => {
+  const txt = (document.getElementById('iExtra')?.value||'').trim();
+  if (!txt) { toast('请填写内容'); return; }
+  S.d[n].extra = txt;
+  if (META[n].type === 'chat') startChat(n);
+  else runGen(n);
+  render();
+};
+
+window.doSend = (n) => {
+  const txt = (document.getElementById('ci')?.value||'').trim();
+  if (!txt||S.busy) return;
+  document.getElementById('ci').value = '';
+  S.d[n].draft = '';
+  userSays(n, txt);
+};
+
+window.saveDraft = (field, v) => {
+  const n = S.section;
+  if (!S.d[n]) return;
+  if (field === 'ci') S.d[n].draft = v;
+  else if (field === 'iExtra') S.d[n].extraDraft = v;
+};
+
+window.saveInputDraft = (n, key, v) => {
+  if (!S.d[n].inputs) S.d[n].inputs = {};
+  S.d[n].inputs[key] = v;
+};
+
+window.submitInputs = (n) => {
+  const meta = META[n];
+  const sec = S.d[n];
+  if (!sec.inputs) sec.inputs = {};
+  for (const f of meta.inputFields) {
+    const el = document.getElementById('iIn_' + f.key);
+    if (el) sec.inputs[f.key] = el.value.trim();
+  }
+  sec.inputsSubmitted = true;
+  if (meta.type === 'gen') runGen(n);
+  else startChat(n);
+  render();
+};
+
+function saveDrafts() {
+  const n = S.section;
+  if (!S.d[n]) return;
+  const ci = document.getElementById('ci');
+  const iExtra = document.getElementById('iExtra');
+  if (ci) S.d[n].draft = ci.value;
+  if (iExtra) S.d[n].extraDraft = iExtra.value;
+  const meta = META[n];
+  if (meta && meta.inputFields) {
+    if (!S.d[n].inputs) S.d[n].inputs = {};
+    for (const f of meta.inputFields) {
+      const el = document.getElementById('iIn_' + f.key);
+      if (el) S.d[n].inputs[f.key] = el.value;
+    }
+  }
+}
+
+window.onKey = (e, n) => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); doSend(n); }
+};
+
+window.autoH = (el) => {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+};
+
+window.doNext = () => {
+  if (S.busy) return;
+  saveDrafts();
+  const next = S.section + 1;
+  if (next > VISIBLE) { doFinish(); return; }
+  S.section = next;
+  render();
+};
+
+window.doBack = () => {
+  if (S.busy) return;
+  saveDrafts();
+  const prev = S.section - 1;
+  if (prev < 1) return;
+  S.section = prev;
+  render();
+};
+
+// 完成最后一个可见模块 → 跳转到成果页，并在后台整合生成路演稿
+window.doFinish = () => {
+  saveDrafts();
+  S.screen = 'complete';
+  render();
+  // 后台静默生成模块 6（底层整合报告）
+  runFinalReport();
+};
+
+window.doComplete = window.doFinish;
+window.sendFeishu = sendFeishu;
+window.copyAll = copyAll;
+
+// ── INIT ──────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
